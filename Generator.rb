@@ -64,6 +64,10 @@ class Generator
 
     case node.kind
     when :PROGRAM
+      # Render top matter
+      t = topMatter(node)
+      puts t.render
+
       for i in 0..node.count-1
         n = node.child(i)
         case n.kind
@@ -107,12 +111,42 @@ class Generator
     # @chain
   end
 
+  def topMatter (node)
+    @logger.debug("topMatter")
+    Template.make("templates/topMatter.c.erb")
+  end
+
   def variableDecl (node)
     @logger.debug("variableDecl")
-    Template.make("templates/variable_decl.c.erb")
+    Template.make("templates/variableDecl.c.erb")
       .add("name", node.child(0).text)
-      .add("type", node.child(1).text)
+      .add("type", type(node.child(1)))
       .add("initializer", initializer(node.child(2)))
+  end
+
+  def type (node)
+    @logger.debug("type")
+    typeExpr(node.child)
+  end
+
+  def typeExpr (node)
+    @logger.debug("typeExpr")
+    case node.kind
+    when :BASIC_TYPE then basicType(node)
+    when :POINTER    then pointerType(node)
+    end
+  end
+
+  def basicType (node)
+    @logger.debug("basicType")
+    Template.make("templates/basicType.c.erb")
+      .add("name", node.text)
+  end
+
+  def pointerType (node)
+    @logger.debug("pointerType")
+    Template.make("templates/pointerType.c.erb")
+      .add("type", typeExpr(node.child))
   end
 
   def initializer (node)
@@ -147,7 +181,7 @@ class Generator
     @logger.debug("parameter")
     Template.make("templates/parameter.c.erb")
       .add("name", node.child(0).text)
-      .add("type", node.child(1).text)
+      .add("type", type(node.child(1)))
   end
 
   def blockExpr (node)

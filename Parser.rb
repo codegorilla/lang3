@@ -138,13 +138,38 @@ class Parser
     match('var')
     n.addChild(identifier)
     match(':')
-    n.addChild(identifier)
+    n.addChild(type)
     match('=')
     n.addChild(expression)
     match(';')
     n
   end
   
+  def type ()
+    @logger.debug("type")
+    n = Node.new(:TYPE)
+    # Either a basic type or compound
+    p = basicType
+    while nextToken.kind == '*'
+      @tokens.consume
+      q = Node.new(:POINTER)
+      q.addChild(p)
+      p = q
+    end
+    n.addChild(p)
+    n
+  end
+
+  def basicType ()
+    @logger.debug("basicType")
+    t = nextToken
+    match(:ID)
+    n = Node.new(:BASIC_TYPE)
+    n.setLine(t.line)
+    n.setText(t.text)
+    n
+  end
+
   def functionDecl ()
     @logger.debug("functionDecl")
     n = Node.new(:FUNCTION_DECL)
@@ -188,7 +213,7 @@ class Parser
     n = Node.new(:PARAMETER)
     n.addChild(identifier)
     match(':')
-    n.addChild(identifier)
+    n.addChild(type)
     n
   end
 
