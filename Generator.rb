@@ -220,6 +220,7 @@ class Generator
     when :RETURN_EXPR     then returnExpr(node)
     when :BINARY_EXPR     then binaryExpr(node)
     when :UNARY_EXPR      then unaryExpr(node)
+    when :FUNCTION_CALL   then functionCall(node)
     when :NAME            then name(node)
     when :NULL_LITERAL    then nullLiteral(node)
     when :BOOLEAN_LITERAL then booleanLiteral(node)
@@ -257,6 +258,27 @@ class Generator
     Template.make("templates/unaryExpr.c.erb")
       .add("op", node.text)
       .add("expr", exprTest(node.child))
+  end
+
+  def functionCall (node)
+    @logger.debug("functionCall")
+    Template.make("templates/functionCall.c.erb")
+      .add("name", node.child(0).text)
+      .add("arguments", arguments(node.child(1)))
+  end
+
+  def arguments (node)
+    @logger.debug("arguments")
+    args = []
+    node.children.each { |n| args << argument(n) }
+    Template.make("templates/arguments.c.erb")
+      .add("args", args)
+  end
+
+  def argument (node)
+    @logger.debug("argument")
+    Template.make("templates/argument.c.erb")
+      .add("expression", expression(node))
   end
 
   def name (node)
@@ -539,12 +561,12 @@ class Generator
 
   # end
 
-  def functionCall (node)
-    callable = node.leftChild
-    arguments = node.rightChild
-    expr(callable)
-    add(Instruction.new(:CALL))
-  end
+  # def functionCall (node)
+  #   callable = node.leftChild
+  #   arguments = node.rightChild
+  #   expr(callable)
+  #   add(Instruction.new(:CALL))
+  # end
 
   def objectAccess (node)
     namespace = node.leftChild

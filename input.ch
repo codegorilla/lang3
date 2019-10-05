@@ -4,7 +4,7 @@ def main (argc: int, argv: char**): int = {
   var a: int = 4 * -1;
   var s: char* = "hello";
   var t: char* = s;
-  printf();
+  printf("Hello world!\n");
   t = s = r;
   return 14.1;
 }
