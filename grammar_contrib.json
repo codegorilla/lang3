@@ -1,0 +1,17 @@
+{
+  "contributes": {
+    "languages": [
+      {
+        "id": "charm",
+        "extensions": [".ch"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "charm",
+        "scopeName": "source.ch",
+        "path": "./syntaxes/charm.tmGrammar.json"
+      }
+    ]
+  }
+}

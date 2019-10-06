@@ -8,7 +8,7 @@ require 'pp'
 require 'logger'
 
 @filename = "input.ch"
-@filename = "hello.ch"
+#@filename = "hello.ch"
 
 @logger = Logger.new(STDOUT)
 @logger.level = Logger::INFO
@@ -46,6 +46,6 @@ puts parser.problems.warnings
 
 # Build output source file
 gen = Generator.new(root)
-#gen.setLogLevel(Logger::DEBUG)
+gen.setLogLevel(Logger::DEBUG)
 chain = gen.start
 

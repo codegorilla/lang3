@@ -934,6 +934,7 @@ class Parser
     when :INTEGER then integerLiteral
     when :FLOAT then floatLiteral
     when :IMAGINARY then imaginaryLiteral
+    when :CHARACTER then characterLiteral
     when :STRING then stringLiteral
     when '[' then arrayLiteral
     when '{' then hashLiteral
@@ -978,6 +979,14 @@ class Parser
     n = Node.new(:IMAGINARY_LITERAL)
     n.setText(nextToken.text)
     match(:IMAGINARY)
+    n
+  end
+
+  def characterLiteral ()
+    @logger.debug("charLiteral")
+    n = Node.new(:CHARACTER_LITERAL)
+    n.setText(nextToken.text)
+    match(:CHARACTER)
     n
   end
 

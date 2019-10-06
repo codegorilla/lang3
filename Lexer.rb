@@ -17,7 +17,8 @@ class Lexer
   STATE_FLOAT3 = 6
   STATE_COMMENT = 7
   STATE_BLOCK_COMMENT = 8
-  STATE_STRING = 9
+  STATE_CHAR = 9
+  STATE_STRING = 10
 
   TILDE = '~'
   BANG = '!'
@@ -388,6 +389,11 @@ class Lexer
           end
           done = true
         
+        when "'"
+          consume
+          text = ""
+          state = STATE_CHAR
+
         when '"'
           consume
           text = ""
@@ -537,6 +543,20 @@ class Lexer
           token = makeToken(:FLOAT, text)
           done = true
         end
+
+      when STATE_CHAR
+        ch = nextChar
+        while (ch != "'")
+          consume
+          text << ch
+          ch = nextChar
+        end
+        consume
+        # Need to adjust line and col, probably need to track line/col start
+        @logger.debug("(Ln #{line}, Col #{start-1}): Found string '#{text}'")
+        token = makeToken(:CHARACTER, text)
+        done = true
+
 
       when STATE_STRING
         ch = nextChar

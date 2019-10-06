@@ -215,21 +215,38 @@ class Generator
   def exprTest (node)
     @logger.debug("exprTest")
     case node.kind
-    when :EXPRESSION      then expression(node)
-    when :ASSIGNMENT_EXPR then assignmentExpr(node)
-    when :RETURN_EXPR     then returnExpr(node)
-    when :BINARY_EXPR     then binaryExpr(node)
-    when :UNARY_EXPR      then unaryExpr(node)
-    when :FUNCTION_CALL   then functionCall(node)
-    when :NAME            then name(node)
-    when :NULL_LITERAL    then nullLiteral(node)
-    when :BOOLEAN_LITERAL then booleanLiteral(node)
-    when :INTEGER_LITERAL then integerLiteral(node)
-    when :FP_LITERAL      then fpLiteral(node)
-    when :STRING_LITERAL  then stringLiteral(node)
+    when :EXPRESSION        then expression(node)
+    when :LOGICAL_OR_EXPR   then logicalOrExpr(node)
+    when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
+    when :ASSIGNMENT_EXPR   then assignmentExpr(node)
+    when :RETURN_EXPR       then returnExpr(node)
+    when :BINARY_EXPR       then binaryExpr(node)
+    when :UNARY_EXPR        then unaryExpr(node)
+    when :FUNCTION_CALL     then functionCall(node)
+    when :NAME              then name(node)
+    when :NULL_LITERAL      then nullLiteral(node)
+    when :BOOLEAN_LITERAL   then booleanLiteral(node)
+    when :INTEGER_LITERAL   then integerLiteral(node)
+    when :FP_LITERAL        then fpLiteral(node)
+    when :CHARACTER_LITERAL then characterLiteral(node)
+    when :STRING_LITERAL    then stringLiteral(node)
     else
       puts node.kind
     end
+  end
+
+  def logicalOrExpr (node)
+    @logger.debug("logicalOrExpr")
+    Template.make("templates/logicalOrExpr.c.erb")
+      .add("left", exprTest(node.leftChild))
+      .add("right", exprTest(node.rightChild))
+  end
+
+  def logicalAndExpr (node)
+    @logger.debug("logicalAndExpr")
+    Template.make("templates/logicalAndExpr.c.erb")
+      .add("left", exprTest(node.leftChild))
+      .add("right", exprTest(node.rightChild))
   end
 
   def assignmentExpr (node)
@@ -307,6 +324,12 @@ class Generator
   def fpLiteral (node)
     @logger.debug("fpLiteral")
     Template.make("templates/fpLiteral.c.erb")
+      .add("value", node.text)
+  end
+
+  def characterLiteral (node)
+    @logger.debug("characterLiteral")
+    Template.make("templates/characterLiteral.c.erb")
       .add("value", node.text)
   end
 
@@ -462,52 +485,52 @@ class Generator
     end
   end
 
-  def logicalOrExpr (node)
-    @logger.debug("logicalOrExpr")
-    # Equivalent to 'if (a) true else b'
-    expr(node.leftChild)
-    # Reference to BF instruction used for back-patching
-    bfInst = Instruction.new(:BF, nil)
-    add(bfInst)
-    add(Instruction.new(:PUSH_BOOL, "true"))
-    # Reference to JUMP instruction used for back-patching
-    jumpInst = Instruction.new(:JUMP, nil)
-    add(jumpInst)
-    label = nextLabel
-    add(Instruction.new(:LAB, "L#{label}"))
-    # Back-patch the BF instruction
-    address = @chain.length
-    bfInst.setText(address)
-    expr(node.rightChild)
-    exitLabel = nextLabel
-    add(Instruction.new(:LAB, "L#{exitLabel}"))
-    # Back-patch the JUMP instruction
-    exitAddress = @chain.length
-    jumpInst.setText(exitAddress)
-  end
+  # def logicalOrExpr (node)
+  #   @logger.debug("logicalOrExpr")
+  #   # Equivalent to 'if (a) true else b'
+  #   expr(node.leftChild)
+  #   # Reference to BF instruction used for back-patching
+  #   bfInst = Instruction.new(:BF, nil)
+  #   add(bfInst)
+  #   add(Instruction.new(:PUSH_BOOL, "true"))
+  #   # Reference to JUMP instruction used for back-patching
+  #   jumpInst = Instruction.new(:JUMP, nil)
+  #   add(jumpInst)
+  #   label = nextLabel
+  #   add(Instruction.new(:LAB, "L#{label}"))
+  #   # Back-patch the BF instruction
+  #   address = @chain.length
+  #   bfInst.setText(address)
+  #   expr(node.rightChild)
+  #   exitLabel = nextLabel
+  #   add(Instruction.new(:LAB, "L#{exitLabel}"))
+  #   # Back-patch the JUMP instruction
+  #   exitAddress = @chain.length
+  #   jumpInst.setText(exitAddress)
+  # end
 
-  def logicalAndExpr (node)
-    # Equivalent to 'if (a) b else false'
-    expr(node.leftChild)
-    # Reference to BF instruction used for back-patching
-    bfInst = Instruction.new(:BF, nil)
-    add(bfInst)
-    expr(node.rightChild)
-    # Reference to JUMP instruction used for back-patching
-    jumpInst = Instruction.new(:JUMP, nil)
-    add(jumpInst)
-    label = nextLabel
-    add(Instruction.new(:LAB, "L#{label}"))
-    # Back-patch the BF instruction
-    address = @chain.length
-    bfInst.setText(address)
-    add(Instruction.new(:PUSH_BOOL, "false"))
-    exitLabel = nextLabel
-    add(Instruction.new(:LAB, "L#{exitLabel}"))
-    # Back-patch the JUMP instruction
-    exitAddress = @chain.length
-    jumpInst.setText(exitAddress)
-  end
+  # def logicalAndExpr (node)
+  #   # Equivalent to 'if (a) b else false'
+  #   expr(node.leftChild)
+  #   # Reference to BF instruction used for back-patching
+  #   bfInst = Instruction.new(:BF, nil)
+  #   add(bfInst)
+  #   expr(node.rightChild)
+  #   # Reference to JUMP instruction used for back-patching
+  #   jumpInst = Instruction.new(:JUMP, nil)
+  #   add(jumpInst)
+  #   label = nextLabel
+  #   add(Instruction.new(:LAB, "L#{label}"))
+  #   # Back-patch the BF instruction
+  #   address = @chain.length
+  #   bfInst.setText(address)
+  #   add(Instruction.new(:PUSH_BOOL, "false"))
+  #   exitLabel = nextLabel
+  #   add(Instruction.new(:LAB, "L#{exitLabel}"))
+  #   # Back-patch the JUMP instruction
+  #   exitAddress = @chain.length
+  #   jumpInst.setText(exitAddress)
+  # end
 
   def ifExpr (node)
     @logger.debug("ifExpr")
