@@ -313,22 +313,18 @@ class Parser
 
   def expression ()
     @logger.debug("expression")
-    n = Node.new(:EXPRESSION)
-    p =
-      case nextToken.kind
-      when 'break' then breakExpr
-      when 'continue' then continueExpr
-      when 'do' then doExpr
-      when 'for' then forExpr
-      when 'import' then importExpr
-      when 'print' then printExpr
-      when 'return' then returnExpr
-      when 'while' then whileExpr
-      else
-        assignmentExpr
-      end
-    n.addChild(p)
-    n
+    case nextToken.kind
+    when 'break' then breakExpr
+    when 'continue' then continueExpr
+    when 'do' then doExpr
+    when 'for' then forExpr
+    when 'import' then importExpr
+    when 'print' then printExpr
+    when 'return' then returnExpr
+    when 'while' then whileExpr
+    else
+      assignmentExpr
+    end
   end
 
   def breakExpr ()

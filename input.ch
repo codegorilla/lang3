@@ -12,7 +12,11 @@ def main (argc: int, argv: string*): int = {
 
   while (x < 1) {
     t += 2;
-    break;
+    continue;
+  };
+
+  if (x < 1) {
+    t = 2;
   };
 
   t = s = r;

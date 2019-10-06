@@ -194,22 +194,18 @@ class Generator
 
   def expression (node)
     @logger.debug("expression")
-    exprTest(node.child)
-  end
-
-  def exprTest (node)
-    @logger.debug("exprTest")
     case node.kind
-    when :EXPRESSION        then expression(node)
     when :LOGICAL_OR_EXPR   then logicalOrExpr(node)
     when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
     when :ASSIGNMENT_EXPR   then assignmentExpr(node)
     when :COMPOUND_ASSIGNMENT_EXPR then compoundAssignmentExpr(node)
     when :BREAK_EXPR        then breakExpr(node)
+    when :CONTINUE_EXPR     then continueExpr(node)
     when :RETURN_EXPR       then returnExpr(node)
     when :WHILE_EXPR        then whileExpr(node)
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
+    when :IF_EXPR           then ifExpr(node)
     when :BLOCK_EXPR        then blockExpr(node)
     when :FUNCTION_CALL     then functionCall(node)
     when :NAME              then name(node)
@@ -227,35 +223,40 @@ class Generator
   def logicalOrExpr (node)
     @logger.debug("logicalOrExpr")
     Template.make("templates/logicalOrExpr.c.erb")
-      .add("left", exprTest(node.leftChild))
-      .add("right", exprTest(node.rightChild))
+      .add("left", expression(node.leftChild))
+      .add("right", expression(node.rightChild))
   end
 
   def logicalAndExpr (node)
     @logger.debug("logicalAndExpr")
     Template.make("templates/logicalAndExpr.c.erb")
-      .add("left", exprTest(node.leftChild))
-      .add("right", exprTest(node.rightChild))
+      .add("left", expression(node.leftChild))
+      .add("right", expression(node.rightChild))
   end
 
   def assignmentExpr (node)
     @logger.debug("assignmentExpr")
     Template.make("templates/assignmentExpr.c.erb")
-      .add("lhs", exprTest(node.leftChild))
-      .add("rhs", exprTest(node.rightChild))
+      .add("lhs", expression(node.leftChild))
+      .add("rhs", expression(node.rightChild))
   end
 
   def compoundAssignmentExpr (node)
     @logger.debug("compoundAssignmentExpr")
     Template.make("templates/compoundAssignmentExpr.c.erb")
       .add("op", node.text)
-      .add("lhs", exprTest(node.leftChild))
-      .add("rhs", exprTest(node.rightChild))
+      .add("lhs", expression(node.leftChild))
+      .add("rhs", expression(node.rightChild))
   end
 
   def breakExpr (node)
     @logger.debug("breakExpr")
     Template.make("templates/breakExpr.c.erb")
+  end
+
+  def continueExpr (node)
+    @logger.debug("continueExpr")
+    Template.make("templates/continueExpr.c.erb")
   end
 
   def returnExpr (node)
@@ -275,15 +276,22 @@ class Generator
     @logger.debug("binaryExpr")
     Template.make("templates/binaryExpr.c.erb")
       .add("op", node.text)
-      .add("left", exprTest(node.leftChild))
-      .add("right", exprTest(node.rightChild))
+      .add("left", expression(node.leftChild))
+      .add("right", expression(node.rightChild))
   end
 
   def unaryExpr (node)
     @logger.debug("binaryExpr")
     Template.make("templates/unaryExpr.c.erb")
       .add("op", node.text)
-      .add("expr", exprTest(node.child))
+      .add("expr", expression(node.child))
+  end
+
+  def ifExpr (node)
+    @logger.debug("ifExpr")
+    Template.make("templates/ifExpr.c.erb")
+      .add("cond", expression(node.child))
+      .add("expression", expression(node.child(1)))
   end
 
   def blockExpr (node)
@@ -368,7 +376,10 @@ class Generator
       .add("value", node.text)
   end
 
-  ####################
+
+
+  ##############################################################################
+  ##############################################################################
 
   # def statement (node)
   #   @logger.debug("statement")
@@ -561,21 +572,21 @@ class Generator
   #   jumpInst.setText(exitAddress)
   # end
 
-  def ifExpr (node)
-    @logger.debug("ifExpr")
-    condNode = node.child(0)
-    expression(condNode)
-    # Reference to BF instruction used for back-patching
-    bfInst = Instruction.new(:BF, nil)
-    add(bfInst)
-    bodyNode = node.child(1)
-    expression(bodyNode)
-    exitLabel = nextLabel
-    add(Instruction.new(:LAB, "L#{exitLabel}"))
-    # Back-patch the BF instruction
-    exitAddress = @chain.length
-    bfInst.setText(exitAddress)
-  end
+  # def ifExpr (node)
+  #   @logger.debug("ifExpr")
+  #   condNode = node.child(0)
+  #   expression(condNode)
+  #   # Reference to BF instruction used for back-patching
+  #   bfInst = Instruction.new(:BF, nil)
+  #   add(bfInst)
+  #   bodyNode = node.child(1)
+  #   expression(bodyNode)
+  #   exitLabel = nextLabel
+  #   add(Instruction.new(:LAB, "L#{exitLabel}"))
+  #   # Back-patch the BF instruction
+  #   exitAddress = @chain.length
+  #   bfInst.setText(exitAddress)
+  # end
 
   # def blockExpr (node)
   #   # Fetch the scope attribute stored in the node
