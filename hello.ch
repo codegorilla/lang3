@@ -1,6 +1,11 @@
 
 def main (argc: int, argv: char**): int = {
-  printf("Hello world!\n");
+  var c: int = 0;
+  while (c < 5) {
+    printf("Hello world!\n");
+    c += 1;
+    break;
+  };
   return 0;
 }
 

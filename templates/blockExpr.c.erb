@@ -1,5 +1,5 @@
-{
+<%= indent %>{
 <% @attr['elements'].each do |element| %>
-  <%= element.render %><%= "\n" %>
+<%= indent %>  <%= element.render %><%= "\n" %>
 <% end %>
-}
+<%= indent %>}

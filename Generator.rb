@@ -11,6 +11,8 @@ class Generator
     @logger.level = Logger::INFO
     @logger.info("Initialized code generator.")
 
+    @level = -1
+
     @label = 0
 
     # A list of chains
@@ -184,23 +186,6 @@ class Generator
       .add("type", type(node.child(1)))
   end
 
-  def blockExpr (node)
-    @logger.debug("blockExpr")
-    elements = []
-    node.children.each { |n| elements << blockElement(n) }
-    Template.make("templates/blockExpr.c.erb")
-      .add("elements", elements)
-  end
-
-  def blockElement (node)
-    @logger.debug("blockElement")
-    case node.kind
-    when :STATEMENT     then statement(node)
-    #when :VALUE_DECL    then valueDecl(node)
-    when :VARIABLE_DECL then variableDecl(node)
-    end
-  end
-
   def statement (node)
     @logger.debug("statement")
     Template.make("templates/statement.c.erb")
@@ -219,9 +204,13 @@ class Generator
     when :LOGICAL_OR_EXPR   then logicalOrExpr(node)
     when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
     when :ASSIGNMENT_EXPR   then assignmentExpr(node)
+    when :COMPOUND_ASSIGNMENT_EXPR then compoundAssignmentExpr(node)
+    when :BREAK_EXPR        then breakExpr(node)
     when :RETURN_EXPR       then returnExpr(node)
+    when :WHILE_EXPR        then whileExpr(node)
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
+    when :BLOCK_EXPR        then blockExpr(node)
     when :FUNCTION_CALL     then functionCall(node)
     when :NAME              then name(node)
     when :NULL_LITERAL      then nullLiteral(node)
@@ -256,10 +245,30 @@ class Generator
       .add("rhs", exprTest(node.rightChild))
   end
 
+  def compoundAssignmentExpr (node)
+    @logger.debug("compoundAssignmentExpr")
+    Template.make("templates/compoundAssignmentExpr.c.erb")
+      .add("op", node.text)
+      .add("lhs", exprTest(node.leftChild))
+      .add("rhs", exprTest(node.rightChild))
+  end
+
+  def breakExpr (node)
+    @logger.debug("breakExpr")
+    Template.make("templates/breakExpr.c.erb")
+  end
+
   def returnExpr (node)
     @logger.debug("returnExpr")
     Template.make("templates/returnExpr.c.erb")
       .add("expression", expression(node.child))
+  end
+
+  def whileExpr (node)
+    @logger.debug("whileExpr")
+    Template.make("templates/whileExpr.c.erb")
+      .add("cond", expression(node.child(0)))
+      .add("expression", expression(node.child(1)))
   end
 
   def binaryExpr (node)
@@ -277,6 +286,26 @@ class Generator
       .add("expr", exprTest(node.child))
   end
 
+  def blockExpr (node)
+    @logger.debug("blockExpr")
+    @level += 1
+    elements = []
+    node.children.each { |n| elements << blockElement(n) }
+    t = Template.make("templates/blockExpr.c.erb", @level)
+      .add("elements", elements)
+    @level -= 1;
+    t
+  end
+
+  def blockElement (node)
+    @logger.debug("blockElement")
+    case node.kind
+    when :STATEMENT     then statement(node)
+    #when :VALUE_DECL    then valueDecl(node)
+    when :VARIABLE_DECL then variableDecl(node)
+    end
+  end
+  
   def functionCall (node)
     @logger.debug("functionCall")
     Template.make("templates/functionCall.c.erb")
@@ -397,15 +426,15 @@ class Generator
     nil
   end
 
-  def breakExpr (node)
-    # Jump to nearest exit
-    @logger.debug("breakExpr")
-    add(Instruction.new(:JUMP, "L#{@exit}"))
-  end
+  # def breakExpr (node)
+  #   # Jump to nearest exit
+  #   @logger.debug("breakExpr")
+  #   add(Instruction.new(:JUMP, "L#{@exit}"))
+  # end
 
-  def printExpr (node)
-    #puts node.kind
-  end
+  # def printExpr (node)
+  #   #puts node.kind
+  # end
 
   # def returnExpr (node)
   #   @logger.debug("returnExpr")
@@ -413,29 +442,29 @@ class Generator
   #   add(Instruction.new(:RET))
   # end
 
-  def whileExpr (node)
-    @logger.debug("whileExpr")
-    entryLabel = nextLabel
-    exitLabel = nextLabel
-    add(Instruction.new(:LAB, "L#{entryLabel}"))
-    entryAddress = @chain.length
-    condNode = node.child(0)
-    expression(condNode)
-    # Reference to BF instruction used for back-patching
-    bfInst = Instruction.new(:BF, nil)
-    add(bfInst)
-    saveExit = @exit
-    @exit = exitLabel
-    bodyNode = node.child(1)
-    expression(bodyNode)
-    @exit = saveExit
-    add(Instruction.new(:JUMP, entryAddress))
-    #exitLabel = nextLabel
-    add(Instruction.new(:LAB, "L#{exitLabel}"))
-    # Back-patch the BF instruction
-    exitAddress = @chain.length
-    bfInst.setText(exitAddress)
-  end
+  # def whileExpr (node)
+  #   @logger.debug("whileExpr")
+  #   entryLabel = nextLabel
+  #   exitLabel = nextLabel
+  #   add(Instruction.new(:LAB, "L#{entryLabel}"))
+  #   entryAddress = @chain.length
+  #   condNode = node.child(0)
+  #   expression(condNode)
+  #   # Reference to BF instruction used for back-patching
+  #   bfInst = Instruction.new(:BF, nil)
+  #   add(bfInst)
+  #   saveExit = @exit
+  #   @exit = exitLabel
+  #   bodyNode = node.child(1)
+  #   expression(bodyNode)
+  #   @exit = saveExit
+  #   add(Instruction.new(:JUMP, entryAddress))
+  #   #exitLabel = nextLabel
+  #   add(Instruction.new(:LAB, "L#{exitLabel}"))
+  #   # Back-patch the BF instruction
+  #   exitAddress = @chain.length
+  #   bfInst.setText(exitAddress)
+  # end
 
   # def assignmentExpr (node)
   #   @logger.debug("assignmentExpr")
