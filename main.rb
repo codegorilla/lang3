@@ -2,6 +2,7 @@ require_relative 'InputStream'
 require_relative 'TokenStream'
 require_relative 'Lexer'
 require_relative 'Parser'
+require_relative 'Transformer'
 require_relative 'Generator'
 
 require 'pp'
@@ -44,8 +45,14 @@ root = parser.start
 puts parser.problems.errors
 puts parser.problems.warnings
 
+# Build output model
+tx = Transformer.new(root)
+tx.setLogLevel(Logger::DEBUG)
+tx.start
+
+
 # Build output source file
-gen = Generator.new(root)
+#gen = Generator.new(root)
 #gen.setLogLevel(Logger::DEBUG)
-chain = gen.start
+#chain = gen.start
 
