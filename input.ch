@@ -23,3 +23,12 @@ def main (argc: int, argv: string*): int = {
   return 14.1;
 }
 
+struct String {
+  var s: string = null;
+
+  def initialize (self: String*, s: string): String = {
+    
+  }
+
+}
+

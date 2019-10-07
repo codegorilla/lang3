@@ -1,0 +1,10 @@
+<%= indent %>{
+<% @attr['fieldElements'].each do |element| %>
+<%= indent %>  <%= element.render %><%= "\n" %>
+<% end %>
+<%= indent %>}
+
+<% @attr['methodElements'].each do |element| %>
+<%= indent %>  <%= element.render %><%= "\n" %>
+<% end %>
+

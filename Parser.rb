@@ -87,7 +87,7 @@ class Parser
     while !done do
       t = nextToken
       case t.kind
-      when 'val', 'var', 'def', 'class', 'object', 'module'
+      when 'val', 'var', 'def', 'class', 'object', 'module', 'struct'
         n.addChild(declaration)
       when 'break', 'continue', 'do', ';', 'for', 'import', 'print', 'return', 'while'
         n.addChild(statement)
@@ -116,6 +116,7 @@ class Parser
     when 'class' then classDecl
     when 'object' then objectDecl
     when 'module' then moduleDecl
+    when 'struct' then structDecl
     else
       raise "Parse error in declaration(): Can this ever happen?"
     end
@@ -267,6 +268,26 @@ class Parser
     match('module')
     n.addChild(identifier)
     match(';')
+    n
+  end
+
+  def structDecl ()
+    @logger.debug("structDecl")
+    n = Node.new(:STRUCT_DECL)
+    match('struct')
+    n.addChild(identifier)
+    n.addChild(structBody)
+    n
+  end
+
+  def structBody ()
+    @logger.debug("structBody")
+    n = Node.new(:STRUCT_BODY)
+    match('{')
+    while nextToken.kind != '}'
+      n.addChild(declaration)
+    end
+    match('}')
     n
   end
 

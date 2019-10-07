@@ -46,6 +46,6 @@ puts parser.problems.warnings
 
 # Build output source file
 gen = Generator.new(root)
-gen.setLogLevel(Logger::DEBUG)
+#gen.setLogLevel(Logger::DEBUG)
 chain = gen.start
 

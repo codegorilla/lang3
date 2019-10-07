@@ -79,38 +79,14 @@ class Generator
         when :FUNCTION_DECL
           t = functionDecl(n)
           puts t.render
+        when :STRUCT_DECL
+          t = structDecl(n)
+          # Put this in a new file?
+          puts t.render
         end
       end
-    end
 
-    #   inst = Instruction.new(:BEGIN)
-    #   add(inst)
-    #   for i in 0..node.count-1
-    #     n = node.child(i)
-    #     case n.kind
-    #     when :VALUE_DECL
-    #       valueDecl(n)
-    #     when :VARIABLE_DECL then variableDecl(n)
-    #     when :FUNCTION_DECL
-    #       functionDecl(n)
-    #     when :EMPTY_STMT
-    #       emptyStmt(n)
-    #     when :EXPR_STMT
-    #       exprStmt(n)
-    #     when :IF_STMT
-    #       ifStmt(n)
-    #     when :RETURN_STMT
-    #       returnStmt(n)
-    #     when :STATEMENT then statement(n)
-    #     end
-    #   end
-    #   # Add HALT instruction at very end
-    #   add(Instruction.new(:HALT))
-    # end
-    # node.setAttribute('chain', @chain)
-    # #pp @chain
-    # #popChain
-    # @chain
+    end
   end
 
   def topMatter (node)
@@ -125,6 +101,14 @@ class Generator
       .add("type", type(node.child(1)))
       .add("initializer", initializer(node.child(2)))
   end
+
+  def initializer (node)
+    @logger.debug("initializer")
+    Template.make("templates/initializer.c.erb")
+      .add("expression", expression(node))
+  end
+
+  # TYPE EXPRESSIONS
 
   def type (node)
     @logger.debug("type")
@@ -151,11 +135,7 @@ class Generator
       .add("type", typeExpr(node.child))
   end
 
-  def initializer (node)
-    @logger.debug("initializer")
-    Template.make("templates/initializer.c.erb")
-      .add("expression", expression(node))
-  end
+  # FUNCTION DECLARATION
 
   def functionDecl (node)
     @logger.debug("functionDecl")
@@ -163,7 +143,7 @@ class Generator
     # declarations or abstract methods are introduced. For now, the expr is
     # always expected to be present. It may be either an expression or a block
     # expression, until automatic semicolon insertion is implemented
-    Template.make("templates/function_decl.c.erb")
+    Template.make("templates/functionDecl.c.erb")
       .add("name", node.child(0).text)
       .add("parameters", parameters(node.child(1)))
       .add("type", node.child(2).text)
@@ -191,6 +171,49 @@ class Generator
     Template.make("templates/statement.c.erb")
       .add("expression", expression(node.child))
   end
+
+  # STRUCTURE DECLARATION
+
+  def structDecl (node)
+    @logger.debug("statement")
+    Template.make("templates/structDecl.c.erb")
+      .add("name", node.child(0).text)
+      .add("body", structBody(node.child(1)))
+  end
+
+  def structBody (node)
+    @logger.debug("structBody")
+    @level += 1
+    fieldElements = []
+    methodElements = []
+    node.children.each do |n|
+      case n.kind
+      when :VARIABLE_DECL then fieldElements << fieldElement(n)
+      when :FUNCTION_DECL then methodElements << methodElement(n)
+      end
+    end
+    t = Template.make("templates/structBody.c.erb")
+      .add("fieldElements", fieldElements)
+      .add("methodElements", methodElements)
+    @level -= 1;
+    t
+  end
+
+  def fieldElement (node)
+    @logger.debug("fieldElement")
+    case node.kind
+    #when :VALUE_DECL    then valueDecl(node)
+    when :VARIABLE_DECL then variableDecl(node)
+    when :FUNCTION_DECL then functionDecl(node)
+    end
+  end
+
+  def methodElement (node)
+    @logger.debug("methodElement")
+    functionDecl(node)
+  end
+
+  # EXPRESSIONS
 
   def expression (node)
     @logger.debug("expression")
