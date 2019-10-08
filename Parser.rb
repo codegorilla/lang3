@@ -180,7 +180,7 @@ class Parser
     n.addChild(parameters)
     match(')')
     match(':')
-    n.addChild(identifier)
+    n.addChild(type)
     option('=')
     if nextToken.kind == '{'
       # Shortcut to block expression

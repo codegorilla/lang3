@@ -1,12 +1,16 @@
 require_relative 'models/Model'
 require_relative 'models/VariableDecl'
+require_relative 'models/FunctionDecl'
+require_relative 'models/Parameters'
+require_relative 'models/Parameter'
 require_relative 'models/Initializer'
 require_relative 'models/Type'
+require_relative 'models/BasicType'
+require_relative 'models/Name'
+
 require_relative 'Template'
 
-#require 'erb'
-
-class Transformer
+class Builder
 
   def initialize (root)
     @root = root
@@ -78,8 +82,8 @@ class Transformer
           m = variableDecl(n)
           puts m.render
         when :FUNCTION_DECL
-          #t = functionDecl(n)
-          #puts t.render
+          m = functionDecl(n)
+          puts m.render
         when :STRUCT_DECL
           #t = structDecl(n)
           # Put this in a new file?
@@ -93,10 +97,9 @@ class Transformer
   def variableDecl (node)
     @logger.debug("variableDecl")
     m = Model::VariableDecl.new
-    m.name = node.child(0).text
+    m.name = name(node.child(0))
     m.type = type(node.child(1))
     m.initializer = initializer(node.child(2))
-    m.bake
     m
   end
 
@@ -106,10 +109,44 @@ class Transformer
     m
   end
 
+  def functionDecl (node)
+    @logger.debug("functionDecl")
+    m = Model::FunctionDecl.new
+    m.name = name(node.child(0))
+    m.parameters = parameters(node.child(1))
+    m.type = type(node.child(2))
+    m
+  end
+
+  def parameters (node)
+    @logger.debug("parameters")
+    m = Model::Parameters.new
+    m.params = []
+    node.children.each do |n|
+      m.params << parameter(n)
+    end
+    m
+  end
+
+  def parameter (node)
+    @logger.debug("parameter")
+    m = Model::Parameter.new
+    m.name = name(node.child(0))
+    m.type = type(node.child(1))
+    m
+  end
+
   def type (node)
+    @logger.debug("type")
     m = Model::Type.new
-    m.name = node.child.text
-    m.bake
+    m.name = basicType(node.child)
+    m
+  end
+
+  def basicType (node)
+    @logger.debug("basicType")
+    m = Model::BasicType.new
+    m.name = node.text
     m
   end
 
@@ -126,6 +163,13 @@ class Transformer
   #   n = Node.new(:TYPE)
   #   n
   # end
+
+  def name (node)
+    @logger.debug("name")
+    m = Model::Name.new
+    m.text = node.text
+    m
+  end
 
 end #class
 

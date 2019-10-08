@@ -1,5 +1,9 @@
 var x: int = (1 + 2) / 4;
 
+def prime (x: int): float = {
+  
+}
+
 def main (argc: int, argv: string*): int = {
   var x: bool = true | false;
   var a: int = 4 * -1;

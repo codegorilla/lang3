@@ -2,13 +2,13 @@ require_relative 'InputStream'
 require_relative 'TokenStream'
 require_relative 'Lexer'
 require_relative 'Parser'
-require_relative 'Transformer'
+require_relative 'Builder'
 require_relative 'Generator'
 
 require 'pp'
 require 'logger'
 
-@filename = "input.ch"
+@filename = "input1.ch"
 #@filename = "hello.ch"
 
 @logger = Logger.new(STDOUT)
@@ -46,7 +46,8 @@ puts parser.problems.errors
 puts parser.problems.warnings
 
 # Build output model
-tx = Transformer.new(root)
+@logger.info("Building output model...")
+tx = Builder.new(root)
 tx.setLogLevel(Logger::DEBUG)
 tx.start
 

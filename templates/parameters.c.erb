@@ -1,4 +1,4 @@
-<% @attr['params'].each do |param| %>
+<% @params.each do |param| %>
 <%= param.render %>
-<%= ', ' if param != @attr['params'].last %>
+<%= ', ' if param != @params.last %>
 <% end %>

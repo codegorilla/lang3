@@ -25,8 +25,12 @@ class Template
     s
   end
 
-  def render ()
-    @erb.result(binding)
+  def render (bindg=nil)
+    if bindg != nil
+      @erb.result(bindg)
+    else
+      @erb.result(binding)
+    end
   end
 
 end
