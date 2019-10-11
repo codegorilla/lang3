@@ -141,11 +141,18 @@ class Parser
     match(':')
     n.addChild(type)
     match('=')
-    n.addChild(expression)
+    n.addChild(initializer)
     match(';')
     n
   end
   
+  def initializer ()
+    @logger.debug("inititalizer")
+    n = Node.new(:INITIALIZER)
+    n.addChild(expression)
+    n
+  end
+
   def type ()
     @logger.debug("type")
     n = Node.new(:TYPE)

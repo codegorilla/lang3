@@ -1,5 +1,5 @@
 class Model::FunctionDecl
-  attr_accessor :name, :parameters, :type
+  attr_accessor :name, :parameters, :type, :expression
 
   def initialize ()
     @template = Template.make("templates/functionDecl.c.erb")

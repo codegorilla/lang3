@@ -1,11 +1,27 @@
 require_relative 'models/Model'
+
 require_relative 'models/VariableDecl'
+require_relative 'models/Initializer'
+
 require_relative 'models/FunctionDecl'
 require_relative 'models/Parameters'
 require_relative 'models/Parameter'
-require_relative 'models/Initializer'
+
 require_relative 'models/Type'
 require_relative 'models/BasicType'
+
+require_relative 'models/logicalOrExpr'
+require_relative 'models/logicalAndExpr'
+require_relative 'models/BinaryExpr'
+require_relative 'models/UnaryExpr'
+require_relative 'models/BlockExpr'
+require_relative 'models/Statement'
+
+require_relative 'models/BooleanLiteral'
+require_relative 'models/IntegerLiteral'
+require_relative 'models/FpLiteral'
+require_relative 'models/CharacterLiteral'
+
 require_relative 'models/Name'
 
 require_relative 'Template'
@@ -94,6 +110,8 @@ class Builder
     end
   end
 
+  # DECLARATIONS
+
   def variableDecl (node)
     @logger.debug("variableDecl")
     m = Model::VariableDecl.new
@@ -104,8 +122,9 @@ class Builder
   end
 
   def initializer (node)
+    @logger.debug("initializer")
     m = Model::Initializer.new
-    m.bake
+    m.expression = expression(node.child)
     m
   end
 
@@ -115,6 +134,8 @@ class Builder
     m.name = name(node.child(0))
     m.parameters = parameters(node.child(1))
     m.type = type(node.child(2))
+    m.expression = blockExpr(node.child(3))
+    # FIX: needs to be a choice between blockExpr or expression
     m
   end
 
@@ -136,6 +157,8 @@ class Builder
     m
   end
 
+  # TYPES
+
   def type (node)
     @logger.debug("type")
     m = Model::Type.new
@@ -150,6 +173,88 @@ class Builder
     m
   end
 
+  # EXPRESSIONS
+
+  def expression (node)
+    @logger.debug("expression")
+    case node.kind
+    when :LOGICAL_OR_EXPR   then logicalOrExpr(node)
+    when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
+    when :BINARY_EXPR       then binaryExpr(node)
+    when :UNARY_EXPR        then unaryExpr(node)
+    #when :BLOCK_EXPR        then blockExpr(node)
+    when :NAME              then name(node)
+    #when :NULL_LITERAL      then nullLiteral(node)
+    when :BOOLEAN_LITERAL   then booleanLiteral(node)
+    when :INTEGER_LITERAL   then integerLiteral(node)
+    when :FP_LITERAL        then fpLiteral(node)
+    when :CHARACTER_LITERAL then characterLiteral(node)
+    #when :STRING_LITERAL    then stringLiteral(node)
+    else
+      puts node.kind
+    end
+  end
+
+  def logicalOrExpr (node)
+    @logger.debug("logicalOrExpr")
+    m = Model::LogicalOrExpr.new
+    m.left = expression(node.leftChild)
+    m.right = expression(node.rightChild)
+    m
+  end
+
+  def logicalAndExpr (node)
+    @logger.debug("logicalAndExpr")
+    m = Model::LogicalAndExpr.new
+    m.left = expression(node.leftChild)
+    m.right = expression(node.rightChild)
+    m
+  end
+
+  def binaryExpr (node)
+    @logger.debug("binaryExpr")
+    m = Model::BinaryExpr.new
+    m.op = node.text
+    m.left = expression(node.leftChild)
+    m.right = expression(node.rightChild)
+    m
+  end
+
+  def unaryExpr (node)
+    @logger.debug("unaryExpr")
+    m = Model::UnaryExpr.new
+    m.op = node.text
+    m.expression = expression(node.child)
+    m
+  end
+
+  def blockExpr (node)
+    @logger.debug("blockExpr")
+    m = Model::BlockExpr.new
+    m.elements = []
+    node.children.each do |n|
+      m.elements << blockElement(n)
+    end
+    m
+  end
+
+  def blockElement (node)
+    @logger.debug("blockElement")
+    case node.kind
+    when :STATEMENT     then statement(node)
+    #when :VALUE_DECL    then valueDecl(node)
+    when :VARIABLE_DECL then variableDecl(node)
+    end
+  end  
+
+  def statement (node)
+    @logger.debug("statement")
+    m = Model::Statement.new
+    m.expression = expression(node.child)
+    m
+  end
+
+
   # def identifier (node)
   #   @logger.debug("identifier")
   #   n = Node.new(:IDENTIFIER)
@@ -158,16 +263,40 @@ class Builder
   #   n
   # end
 
-  # def type (node)
-  #   @logger.debug("type")
-  #   n = Node.new(:TYPE)
-  #   n
-  # end
-
   def name (node)
     @logger.debug("name")
     m = Model::Name.new
     m.text = node.text
+    m
+  end
+
+  # LITERALS
+
+  def booleanLiteral (node)
+    @logger.debug("booleanLiteral")
+    m = Model::BooleanLiteral.new
+    m.value = node.text
+    m
+  end
+
+  def integerLiteral (node)
+    @logger.debug("integerLiteral")
+    m = Model::IntegerLiteral.new
+    m.value = node.text
+    m
+  end
+
+  def fpLiteral (node)
+    @logger.debug("fpLiteral")
+    m = Model::FpLiteral.new
+    m.value = node.text
+    m
+  end
+
+  def characterLiteral (node)
+    @logger.debug("characterLiteral")
+    m = Model::CharacterLiteral.new
+    m.value = node.text
     m
   end
 

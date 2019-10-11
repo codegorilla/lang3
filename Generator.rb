@@ -304,7 +304,7 @@ class Generator
   end
 
   def unaryExpr (node)
-    @logger.debug("binaryExpr")
+    @logger.debug("unaryExpr")
     Template.make("templates/unaryExpr.c.erb")
       .add("op", node.text)
       .add("expr", expression(node.child))
