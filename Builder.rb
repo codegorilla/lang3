@@ -10,8 +10,16 @@ require_relative 'models/Parameter'
 require_relative 'models/Type'
 require_relative 'models/BasicType'
 
-require_relative 'models/logicalOrExpr'
-require_relative 'models/logicalAndExpr'
+require_relative 'models/LogicalOrExpr'
+require_relative 'models/LogicalAndExpr'
+
+require_relative 'models/AssignmentExpr'
+require_relative 'models/CompoundAssignmentExpr'
+
+require_relative 'models/BreakExpr'
+require_relative 'models/ContinueExpr'
+require_relative 'models/ReturnExpr'
+
 require_relative 'models/BinaryExpr'
 require_relative 'models/UnaryExpr'
 require_relative 'models/BlockExpr'
@@ -180,6 +188,11 @@ class Builder
     case node.kind
     when :LOGICAL_OR_EXPR   then logicalOrExpr(node)
     when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
+    when :ASSIGNMENT_EXPR   then breakExpr(node)
+    when :COMPOUND_ASSIGNMENT_EXPR then compoundAssignmentExpr(node)
+    when :BREAK_EXPR        then breakExpr(node)
+    when :CONTINUE_EXPR     then continueExpr(node)
+    when :RETURN_EXPR       then returnExpr(node)
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
     #when :BLOCK_EXPR        then blockExpr(node)
@@ -209,6 +222,38 @@ class Builder
     m.left = expression(node.leftChild)
     m.right = expression(node.rightChild)
     m
+  end
+
+  def assignmentExpr (node)
+    @logger.debug("assignmentExpr")
+    m = Model::AssignmentExpr.new
+    m.left = expression(node.leftChild)
+    m.right = expression(node.rightChild)
+    m
+  end
+
+  def compoundAssignmentExpr (node)
+    @logger.debug("compoundAssignmentExpr")
+    m = Model::CompoundAssignmentExpr.new
+    m.op = node.text
+    m.left = expression(node.leftChild)
+    m.right = expression(node.rightChild)
+    m
+  end
+
+  def breakExpr (node)
+    @logger.debug("breakExpr")
+    Model::BreakExpr.new
+  end
+
+  def continueExpr (node)
+    @logger.debug("continueExpr")
+    Model::ContinueExpr.new
+  end
+
+  def returnExpr (node)
+    @logger.debug("returnExpr")
+    Model::ReturnExpr.new(expression(node.child))
   end
 
   def binaryExpr (node)

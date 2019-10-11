@@ -5,7 +5,7 @@ def prime (x: int): float = {
   var a: int = 4 * -1;
   var b: int = 1 || 2;
   var c: char = 'A';
-  
-  t;
+  c += 1;
+  return t;
 }
 
