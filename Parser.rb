@@ -342,7 +342,6 @@ class Parser
   def emptyStmt ()
     @logger.debug("emptyStmt")
     n = Node.new(:EMPTY_STMT)
-    n.addChild(Node::UNIT_LITERAL)
     match(';')
     n
   end
