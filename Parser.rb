@@ -317,9 +317,22 @@ class Parser
       # Empty statement is a "no-op", equivalent to '();'
       puts "FOUND A NO-OP! *******************************"
       consume
-      p = Node.new(:EXPRESSION)
+      p = Node.new(:NO_OP_EXPRESSION)
       p.addChild(Node::UNIT_LITERAL)
       n.addChild(p)
+    # short circuiting the whileExpr eliminates the need for semicolon, but then
+    # makes it impossible to parse it as a general expression, for example:
+    # while (x) { x -= 1 } + 5;
+    # you would never really do this anyway because while returns (), which
+    # doesn't have much use in expression chains
+    elsif nextToken.kind == 'break'
+      m.addChild(breakStmt)
+    elsif nextToken.kind == 'continue'
+      m.addChild(continueStmt)
+    elsif nextToken.kind == 'return'
+      n.addChild(returnStmt)
+    elsif nextToken.kind == 'while'
+      n.addChild(whileStmt)
     else
       n.addChild(expression)
       match(';')
@@ -337,37 +350,66 @@ class Parser
     n
   end
 
+  def breakStmt ()
+    @logger.debug("breakStmt")
+    n = Node.new(:BREAK_STMT)
+    match('break')
+    match(';')
+    n
+  end
+
+  def continueStmt ()
+    @logger.debug("continueStmt")
+    n = Node.new(:CONTINUE_STMT)
+    match('continue')
+    match(';')
+    n
+  end
+
+  def returnStmt ()
+    @logger.debug("returnStmt")
+    n = Node.new(:RETURN_STMT)
+    match('return')
+    if nextToken.kind == ';'
+      # Return unit implicitly
+      # Might want to add debug logging here
+      p = Node.new(:EXPRESSION)
+      # Can probably use Node::UNIT_LITERAL
+      q = Node.new(:UNIT_LITERAL)
+      p.addChild(q)
+      n.addChild(p)
+    else
+      n.addChild(expression)
+    end
+    match(';')
+    n
+  end
+
+  def whileStmt ()
+    @logger.debug("whileStmt")
+    n = Node.new(:WHILE_STMT)
+    match('while')
+    match('(')
+    n.addChild(expression)
+    match(')')
+    n.addChild(expression)
+    n
+  end
+
   # EXPRESSIONS
 
   def expression ()
     @logger.debug("expression")
     case nextToken.kind
-    when 'break' then breakExpr
-    when 'continue' then continueExpr
     when 'do' then doExpr
     when 'for' then forExpr
     when 'import' then importExpr
     when 'print' then printExpr
-    when 'return' then returnExpr
-    when 'while' then whileExpr
     else
       assignmentExpr
     end
   end
 
-  def breakExpr ()
-    @logger.debug("breakExpr")
-    n = Node.new(:BREAK_EXPR)
-    match('break')
-    n
-  end
-
-  def continueExpr ()
-    @logger.debug("continueExpr")
-    n = Node.new(:CONTINUE_EXPR)
-    match('continue')
-    n
-  end
 
   def doExpr ()
     @logger.debug("doExpr")
@@ -423,34 +465,7 @@ class Parser
     n
   end
 
-  def returnExpr ()
-    @logger.debug("returnExpr")
-    n = Node.new(:RETURN_EXPR)
-    match('return')
-    if nextToken.kind == ';'
-      # Return unit implicitly
-      # Might want to add debug logging here
-      p = Node.new(:EXPRESSION)
-      # Can probably use Node::UNIT_LITERAL
-      q = Node.new(:UNIT_LITERAL)
-      p.addChild(q)
-      n.addChild(p)
-    else
-      n.addChild(expression)
-    end
-    n
-  end
 
-  def whileExpr ()
-    @logger.debug("whileExpr")
-    n = Node.new(:WHILE_EXPR)
-    match('while')
-    match('(')
-    n.addChild(expression)
-    match(')')
-    n.addChild(expression)
-    n
-  end
 
   def assignmentExpr ()
     # Might need to limit this to lvalues

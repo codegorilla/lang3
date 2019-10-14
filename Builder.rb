@@ -10,15 +10,16 @@ require_relative 'models/Parameter'
 require_relative 'models/Type'
 require_relative 'models/BasicType'
 
+require_relative 'models/BreakStmt'
+require_relative 'models/ContinueStmt'
+require_relative 'models/ReturnStmt'
+require_relative 'models/WhileStmt'
+
 require_relative 'models/LogicalOrExpr'
 require_relative 'models/LogicalAndExpr'
 
 require_relative 'models/AssignmentExpr'
 require_relative 'models/CompoundAssignmentExpr'
-
-require_relative 'models/BreakExpr'
-require_relative 'models/ContinueExpr'
-require_relative 'models/ReturnExpr'
 
 require_relative 'models/BinaryExpr'
 require_relative 'models/UnaryExpr'
@@ -181,6 +182,53 @@ class Builder
     m
   end
 
+  # STATEMENTS
+
+  def statement (node)
+    @logger.debug("statement")
+    m = Model::Statement.new
+    m.stmt = stmt(node.child)
+    m
+  end
+
+  def stmt (node)
+    case node.kind
+    when :BREAK_STMT    then breakStmt(node)
+    when :CONTINUE_STMT then continueStmt(node)
+    when :RETURN_STMT   then returnStmt(node)
+    when :WHILE_STMT    then whileStmt(node)
+    when :EXPR_STMT     then exprStmt(node)
+    end
+  end
+
+  def breakStmt (node)
+    @logger.debug("breakStmt")
+    m = Model::BreakStmt.new
+  end
+
+  def continueStmt (node)
+    @logger.debug("continueStmt")
+    Model::ContinueStmt.new
+  end
+
+  def returnStmt (node)
+    @logger.debug("returnStmt")
+    Model::ReturnStmt.new(expression(node.child))
+  end
+
+  def whileStmt (node)
+    @logger.debug("whileStmt")
+    m = Model::WhileExpr.new
+    m.cond = expression(node.child(0))
+    n = node.child(1)
+    if n.kind == :BLOCK_EXPR
+      m.expression = blockExpr(n)
+    else
+      m.expression = expression(n)
+    end
+    m
+  end
+
   # EXPRESSIONS
 
   def expression (node)
@@ -188,11 +236,12 @@ class Builder
     case node.kind
     when :LOGICAL_OR_EXPR   then logicalOrExpr(node)
     when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
-    when :ASSIGNMENT_EXPR   then breakExpr(node)
+    when :ASSIGNMENT_EXPR   then assignmentExpr(node)
     when :COMPOUND_ASSIGNMENT_EXPR then compoundAssignmentExpr(node)
-    when :BREAK_EXPR        then breakExpr(node)
-    when :CONTINUE_EXPR     then continueExpr(node)
-    when :RETURN_EXPR       then returnExpr(node)
+#    when :BREAK_EXPR        then breakExpr(node)
+#    when :CONTINUE_EXPR     then continueExpr(node)
+#    when :RETURN_EXPR       then returnExpr(node)
+#    when :WHILE_EXPR        then whileExpr(node)
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
     #when :BLOCK_EXPR        then blockExpr(node)
@@ -241,20 +290,6 @@ class Builder
     m
   end
 
-  def breakExpr (node)
-    @logger.debug("breakExpr")
-    Model::BreakExpr.new
-  end
-
-  def continueExpr (node)
-    @logger.debug("continueExpr")
-    Model::ContinueExpr.new
-  end
-
-  def returnExpr (node)
-    @logger.debug("returnExpr")
-    Model::ReturnExpr.new(expression(node.child))
-  end
 
   def binaryExpr (node)
     @logger.debug("binaryExpr")
@@ -291,13 +326,6 @@ class Builder
     when :VARIABLE_DECL then variableDecl(node)
     end
   end  
-
-  def statement (node)
-    @logger.debug("statement")
-    m = Model::Statement.new
-    m.expression = expression(node.child)
-    m
-  end
 
 
   # def identifier (node)

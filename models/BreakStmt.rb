@@ -1,7 +1,7 @@
-class Model::BreakExpr
+class Model::BreakStmt
 
   def initialize ()
-    @template = Template.make("templates/breakExpr.c.erb")
+    @template = Template.make("templates/breakStmt.c.erb")
   end
 
   def render ()

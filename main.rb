@@ -40,7 +40,7 @@ puts ""
 # Build AST
 @logger.info("Building abstract syntax tree...")
 parser = Parser.new(tokens)
-parser.setLogLevel(Logger::WARN)
+parser.setLogLevel(Logger::DEBUG)
 root = parser.start
 puts parser.problems.errors
 puts parser.problems.warnings

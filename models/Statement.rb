@@ -1,5 +1,5 @@
 class Model::Statement
-  attr_accessor :expression
+  attr_accessor :stmt
 
   def initialize ()
     @template = Template.make("templates/statement.c.erb")
