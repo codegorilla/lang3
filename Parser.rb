@@ -312,42 +312,15 @@ class Parser
 
   def statement ()
     @logger.debug("statement")
-    n = Node.new(:STATEMENT)
-    if nextToken.kind == ';' then
-      # Empty statement is a "no-op", equivalent to '();'
-      puts "FOUND A NO-OP! *******************************"
-      consume
-      p = Node.new(:NO_OP_EXPRESSION)
-      p.addChild(Node::UNIT_LITERAL)
-      n.addChild(p)
-    # short circuiting the whileExpr eliminates the need for semicolon, but then
-    # makes it impossible to parse it as a general expression, for example:
-    # while (x) { x -= 1 } + 5;
-    # you would never really do this anyway because while returns (), which
-    # doesn't have much use in expression chains
-    elsif nextToken.kind == 'break'
-      m.addChild(breakStmt)
-    elsif nextToken.kind == 'continue'
-      m.addChild(continueStmt)
-    elsif nextToken.kind == 'return'
-      n.addChild(returnStmt)
-    elsif nextToken.kind == 'while'
-      n.addChild(whileStmt)
+    case nextToken.kind
+    when 'break'    then breakStmt
+    when 'continue' then continueStmt
+    when ';'        then emptyStmt
+    when 'return'   then returnStmt
+    when 'while'    then whileStmt
     else
-      n.addChild(expression)
-      match(';')
-      # I think this is an example of a syntactic predicate
-      # This was just for testing -- I don't think we want to do this
-      # Test for last token here
-      # pos = @tokens.index
-      # tok = @tokens.buffer[pos - 1]
-      # puts "last token was #{tok.text}!"
-      # puts "next token is #{nextToken.text}!"
-      # if tok.text != '}'
-      #   match(';')
-      # end
+      expressionStmt
     end
-    n
   end
 
   def breakStmt ()
@@ -362,6 +335,22 @@ class Parser
     @logger.debug("continueStmt")
     n = Node.new(:CONTINUE_STMT)
     match('continue')
+    match(';')
+    n
+  end
+
+  def emptyStmt ()
+    @logger.debug("emptyStmt")
+    n = Node.new(:EMPTY_STMT)
+    n.addChild(Node::UNIT_LITERAL)
+    match(';')
+    n
+  end
+
+  def expressionStmt ()
+    @logger.debug("expressionStmt")
+    n = Node.new(:EXPRESSION_STMT)
+    n.addChild(expression)
     match(';')
     n
   end

@@ -12,6 +12,7 @@ require_relative 'models/BasicType'
 
 require_relative 'models/BreakStmt'
 require_relative 'models/ContinueStmt'
+require_relative 'models/ExpressionStmt'
 require_relative 'models/ReturnStmt'
 require_relative 'models/WhileStmt'
 
@@ -184,31 +185,25 @@ class Builder
 
   # STATEMENTS
 
-  def statement (node)
-    @logger.debug("statement")
-    m = Model::Statement.new
-    m.stmt = stmt(node.child)
-    m
-  end
-
-  def stmt (node)
-    case node.kind
-    when :BREAK_STMT    then breakStmt(node)
-    when :CONTINUE_STMT then continueStmt(node)
-    when :RETURN_STMT   then returnStmt(node)
-    when :WHILE_STMT    then whileStmt(node)
-    when :EXPR_STMT     then exprStmt(node)
-    end
-  end
-
   def breakStmt (node)
     @logger.debug("breakStmt")
-    m = Model::BreakStmt.new
+    Model::BreakStmt.new
   end
 
   def continueStmt (node)
     @logger.debug("continueStmt")
     Model::ContinueStmt.new
+  end
+
+  def emptyStmt (node)
+    @logger.debug("emptyStmt")
+  end
+
+  def expressionStmt (node)
+    @logger.debug("expressionStmt")
+    m = Model::ExpressionStmt.new
+    m.expression = expression(node.child)
+    m
   end
 
   def returnStmt (node)
@@ -238,10 +233,6 @@ class Builder
     when :LOGICAL_AND_EXPR  then logicalAndExpr(node)
     when :ASSIGNMENT_EXPR   then assignmentExpr(node)
     when :COMPOUND_ASSIGNMENT_EXPR then compoundAssignmentExpr(node)
-#    when :BREAK_EXPR        then breakExpr(node)
-#    when :CONTINUE_EXPR     then continueExpr(node)
-#    when :RETURN_EXPR       then returnExpr(node)
-#    when :WHILE_EXPR        then whileExpr(node)
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
     #when :BLOCK_EXPR        then blockExpr(node)
@@ -321,9 +312,13 @@ class Builder
   def blockElement (node)
     @logger.debug("blockElement")
     case node.kind
-    when :STATEMENT     then statement(node)
     #when :VALUE_DECL    then valueDecl(node)
     when :VARIABLE_DECL then variableDecl(node)
+    when :BREAK_STMT    then breakStmt(node)
+    when :CONTINUE_STMT then continueStmt(node)
+    when :RETURN_STMT   then returnStmt(node)
+    else
+      expressionStmt(node)
     end
   end  
 

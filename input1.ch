@@ -7,10 +7,12 @@ def prime (x: int): float = {
   //var c: char = 'A';
   //c += 1;
 
-//  while (a == 1) {
-//    x = 1;
-//  };
+  while (a == 1) {
+    x = 1;
+  }
 
+  break;
+  continue;
   return t;
 }
 
