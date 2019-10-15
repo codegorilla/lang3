@@ -27,6 +27,10 @@ def prime (x: int): float = {
     x = 1;
   }
 
+  if (b == true) {
+    y = 4;
+  }
+
   break;
   continue;
   return t;

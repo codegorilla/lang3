@@ -17,6 +17,7 @@ require_relative 'models/BreakStmt'
 require_relative 'models/ContinueStmt'
 require_relative 'models/EmptyStmt'
 require_relative 'models/ExpressionStmt'
+require_relative 'models/IfStmt'
 require_relative 'models/ReturnStmt'
 require_relative 'models/WhileStmt'
 
@@ -252,6 +253,19 @@ class Builder
     m
   end
 
+  def ifStmt (node)
+    @logger.debug("ifStmt")
+    m = Model::IfStmt.new
+    m.cond = expression(node.child(0))
+    n = node.child(1)
+    if n.kind == :BLOCK_EXPR
+      m.expression = blockExpr(n)
+    else
+      m.expression = expression(n)
+    end
+    m
+  end
+
   def returnStmt (node)
     @logger.debug("returnStmt")
     Model::ReturnStmt.new(expression(node.child))
@@ -327,7 +341,6 @@ class Builder
     m
   end
 
-
   def binaryExpr (node)
     @logger.debug("binaryExpr")
     m = Model::BinaryExpr.new
@@ -363,12 +376,13 @@ class Builder
     when :BREAK_STMT    then breakStmt(node)
     when :CONTINUE_STMT then continueStmt(node)
     when :EMPTY_STMT    then emptyStmt(node)
+    when :IF_STMT       then ifStmt(node)
     when :RETURN_STMT   then returnStmt(node)
     when :WHILE_STMT    then whileStmt(node)
     else
       expressionStmt(node)
     end
-  end  
+  end
 
 
   # def identifier (node)

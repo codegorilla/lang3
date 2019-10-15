@@ -316,6 +316,7 @@ class Parser
     when 'break'    then breakStmt
     when 'continue' then continueStmt
     when ';'        then emptyStmt
+    when 'if'       then ifStmt
     when 'return'   then returnStmt
     when 'while'    then whileStmt
     else
@@ -351,6 +352,17 @@ class Parser
     n = Node.new(:EXPRESSION_STMT)
     n.addChild(expression)
     match(';')
+    n
+  end
+
+  def ifStmt ()
+    @logger.debug("ifStmt")
+    n = Node.new(:IF_STMT)
+    match('if')
+    match('(')
+    n.addChild(expression)
+    match(')')
+    n.addChild(expression)
     n
   end
 
