@@ -5,6 +5,7 @@ def prime (x: int): float = {
 }
 
 def main (argc: int, argv: string*): int = {
+  // Done except for pointer and printf call
   var x: bool = true | false;
   var a: int = 4 * -1;
   var b: int = 1 || 2;
@@ -35,4 +36,6 @@ struct String {
   }
 
 }
+
+////////////////////////
 

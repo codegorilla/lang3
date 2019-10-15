@@ -1,5 +1,6 @@
 require_relative 'models/Model'
 
+require_relative 'models/ValueDecl'
 require_relative 'models/VariableDecl'
 require_relative 'models/Initializer'
 
@@ -110,7 +111,11 @@ class Builder
 
       for i in 0..node.count-1
         n = node.child(i)
+#      node.children.each |n|
         case n.kind
+        when :VALUE_DECL
+          m = valueDecl(n)
+          puts m.render
         when :VARIABLE_DECL
           m = variableDecl(n)
           puts m.render
@@ -128,6 +133,15 @@ class Builder
   end
 
   # DECLARATIONS
+
+  def valueDecl (node)
+    @logger.debug("valueDecl")
+    m = Model::ValueDecl.new
+    m.name = name(node.child(0))
+    m.type = type(node.child(1))
+    m.initializer = initializer(node.child(2))
+    m
+  end
 
   def variableDecl (node)
     @logger.debug("variableDecl")
@@ -188,6 +202,8 @@ class Builder
     m = Model::StructBody.new
     node.children.each do |n|
       case n.kind
+      when :VALUE_DECL
+        m.fieldElements << fieldElement(n)
       when :VARIABLE_DECL
         m.fieldElements << fieldElement(n)
       when :FUNCTION_DECL
@@ -201,7 +217,7 @@ class Builder
   def fieldElement (node)
     @logger.debug("fieldElement")
     case node.kind
-    #when :VALUE_DECL    then valueDecl(node)
+    when :VALUE_DECL    then valueDecl(node)
     when :VARIABLE_DECL then variableDecl(node)
     when :FUNCTION_DECL then functionDecl(node)
     end
@@ -371,7 +387,7 @@ class Builder
   def blockElement (node)
     @logger.debug("blockElement")
     case node.kind
-    #when :VALUE_DECL    then valueDecl(node)
+    when :VALUE_DECL    then valueDecl(node)
     when :VARIABLE_DECL then variableDecl(node)
     when :BREAK_STMT    then breakStmt(node)
     when :CONTINUE_STMT then continueStmt(node)

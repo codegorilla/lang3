@@ -110,10 +110,10 @@ class Parser
 
   def declaration ()
     case nextToken.kind
-    when 'val' then valueDecl
-    when 'var' then variableDecl
-    when 'def' then functionDecl
-    when 'class' then classDecl
+    when 'val'    then valueDecl
+    when 'var'    then variableDecl
+    when 'def'    then functionDecl
+    when 'class'  then classDecl
     when 'object' then objectDecl
     when 'module' then moduleDecl
     when 'struct' then structDecl
@@ -127,8 +127,10 @@ class Parser
     n = Node.new(:VALUE_DECL)
     match('val')
     n.addChild(identifier)
+    match(':')
+    n.addChild(type)
     match('=')
-    n.addChild(expression)
+    n.addChild(initializer)
     match(';')
     n
   end
