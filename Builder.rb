@@ -7,6 +7,9 @@ require_relative 'models/FunctionDecl'
 require_relative 'models/Parameters'
 require_relative 'models/Parameter'
 
+require_relative 'models/StructDecl'
+require_relative 'models/StructBody'
+
 require_relative 'models/Type'
 require_relative 'models/BasicType'
 
@@ -114,9 +117,9 @@ class Builder
           m = functionDecl(n)
           puts m.render
         when :STRUCT_DECL
-          #t = structDecl(n)
+          m = structDecl(n)
           # Put this in a new file?
-          #puts t.render
+          puts m.render
         end
       end
 
@@ -169,6 +172,45 @@ class Builder
     m.type = type(node.child(1))
     m
   end
+
+  def structDecl (node)
+    @logger.debug("structDecl")
+    m = Model::StructDecl.new
+    m.name = node.child(0).text
+    m.body = structBody(node.child(1))
+    m
+  end
+
+  def structBody (node)
+    @logger.debug("structBody")
+    @level += 1
+    m = Model::StructBody.new
+    node.children.each do |n|
+      case n.kind
+      when :VARIABLE_DECL
+        m.fieldElements << fieldElement(n)
+      when :FUNCTION_DECL
+        m.methodElements << methodElement(n)
+      end
+    end
+    @level -= 1;
+    m
+  end
+
+  def fieldElement (node)
+    @logger.debug("fieldElement")
+    case node.kind
+    #when :VALUE_DECL    then valueDecl(node)
+    when :VARIABLE_DECL then variableDecl(node)
+    when :FUNCTION_DECL then functionDecl(node)
+    end
+  end
+
+  def methodElement (node)
+    @logger.debug("methodElement")
+    functionDecl(node)
+  end
+
 
   # TYPES
 
