@@ -1,4 +1,4 @@
-<% @attr['args'].each do |arg| %>
+<% @args.each do |arg| %>
 <%= arg.render %>
-<%= ', ' if arg != @attr['args'].last %>
+<%= ', ' if arg != @args.last %>
 <% end %>

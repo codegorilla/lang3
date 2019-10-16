@@ -14,6 +14,8 @@ require_relative 'models/StructBody'
 require_relative 'models/Type'
 require_relative 'models/BasicType'
 
+require_relative 'models/Statement'
+
 require_relative 'models/BreakStmt'
 require_relative 'models/ContinueStmt'
 require_relative 'models/EmptyStmt'
@@ -31,7 +33,10 @@ require_relative 'models/CompoundAssignmentExpr'
 require_relative 'models/BinaryExpr'
 require_relative 'models/UnaryExpr'
 require_relative 'models/BlockExpr'
-require_relative 'models/Statement'
+
+require_relative 'models/FunctionCall'
+require_relative 'models/Arguments'
+require_relative 'models/Argument'
 
 require_relative 'models/NullLiteral'
 require_relative 'models/BooleanLiteral'
@@ -57,39 +62,16 @@ class Builder
 
     @label = 0
 
-    # A list of chains
-    @chains = []
-
-    # Each chain is a list of instructions
-    @chain = []
-
     # Scope pointer
     @scope = nil
 
     @globalScope = true
   end
   
-  def pushChain ()
-    @chains.push(@chain)
-    @chain = []
-  end
-
-  def popChain ()
-    @chain = @chains.pop
-  end
-
-  def add (instruction)
-    @chain.push(instruction)
-  end
-
   def setLogLevel (level)
     @logger.level = level
   end
   
-  def nextLabel ()
-    @label += 1
-  end
-
   def globalScope? ()
     @scope.kind == :GLOBAL
   end
@@ -102,7 +84,6 @@ class Builder
 
   def start ()
     @logger.debug("start")
-    pushChain
     node = @root
     @scope = node.getAttribute("scope")      
 
@@ -312,6 +293,7 @@ class Builder
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
     #when :BLOCK_EXPR        then blockExpr(node)
+    when :FUNCTION_CALL     then functionCall(node)
     when :NAME              then name(node)
     when :NULL_LITERAL      then nullLiteral(node)
     when :BOOLEAN_LITERAL   then booleanLiteral(node)
@@ -400,6 +382,31 @@ class Builder
     end
   end
 
+  def functionCall (node)
+    @logger.debug("functionCall")
+    m = Model::FunctionCall.new
+    m.name = node.child(0).text
+    m.arguments = arguments(node.child(1))
+    m
+  end
+
+  def arguments (node)
+    @logger.debug("arguments")
+    m = Model::Arguments.new
+    m.args = []
+    node.children.each do |n|
+      m.args << argument(n)
+    end
+    m
+  end
+
+  def argument (node)
+    @logger.debug("argument")
+    m = Model::Argument.new
+    # Not node.child?
+    m.expression = expression(node)
+    m
+  end
 
   # def identifier (node)
   #   @logger.debug("identifier")
@@ -458,5 +465,5 @@ class Builder
     m
   end
 
-end #class
+end # class
 

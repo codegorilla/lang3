@@ -26,9 +26,9 @@ def main (argc: int, argv: string): int = {
 
   c += 1;
 
-  //var n: int* = null;
-  //printf("Hello world!\n");
-
+  var n: int* = null;
+  printf("Hello world!\n");
+  
   ;
 
   while (a == 1) {
