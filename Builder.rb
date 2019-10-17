@@ -14,6 +14,8 @@ require_relative 'models/StructBody'
 require_relative 'models/Type'
 require_relative 'models/BasicType'
 
+require_relative 'models/Block'
+
 require_relative 'models/Statement'
 
 require_relative 'models/BreakStmt'
@@ -32,7 +34,6 @@ require_relative 'models/CompoundAssignmentExpr'
 
 require_relative 'models/BinaryExpr'
 require_relative 'models/UnaryExpr'
-require_relative 'models/BlockExpr'
 
 require_relative 'models/FunctionCall'
 require_relative 'models/Arguments'
@@ -90,9 +91,7 @@ class Builder
     case node.kind
     when :PROGRAM
 
-      for i in 0..node.count-1
-        n = node.child(i)
-#      node.children.each |n|
+      node.children.each do |n|
         case n.kind
         when :VALUE_DECL
           m = valueDecl(n)
@@ -146,8 +145,8 @@ class Builder
     m.name = name(node.child(0))
     m.parameters = parameters(node.child(1))
     m.type = type(node.child(2))
-    m.expression = blockExpr(node.child(3))
-    # FIX: needs to be a choice between blockExpr or expression
+    m.expression = block(node.child(3))
+    # FIX: needs to be a choice between block or expression
     m
   end
 
@@ -226,6 +225,34 @@ class Builder
     m
   end
 
+  # BLOCK
+
+  def block (node)
+    @logger.debug("block")
+    m = Model::Block.new
+    m.elements = []
+    node.children.each do |n|
+      m.elements << blockElement(n)
+    end
+    m
+  end
+
+  def blockElement (node)
+    @logger.debug("blockElement")
+    case node.kind
+    when :VALUE_DECL    then valueDecl(node)
+    when :VARIABLE_DECL then variableDecl(node)
+    when :BREAK_STMT    then breakStmt(node)
+    when :CONTINUE_STMT then continueStmt(node)
+    when :EMPTY_STMT    then emptyStmt(node)
+    when :IF_STMT       then ifStmt(node)
+    when :RETURN_STMT   then returnStmt(node)
+    when :WHILE_STMT    then whileStmt(node)
+    else
+      expressionStmt(node)
+    end
+  end
+
   # STATEMENTS
 
   def breakStmt (node)
@@ -255,8 +282,8 @@ class Builder
     m = Model::IfStmt.new
     m.cond = expression(node.child(0))
     n = node.child(1)
-    if n.kind == :BLOCK_EXPR
-      m.expression = blockExpr(n)
+    if n.kind == :BLOCK
+      m.expression = block(n)
     else
       m.expression = expression(n)
     end
@@ -273,8 +300,8 @@ class Builder
     m = Model::WhileStmt.new
     m.cond = expression(node.child(0))
     n = node.child(1)
-    if n.kind == :BLOCK_EXPR
-      m.expression = blockExpr(n)
+    if n.kind == :BLOCK
+      m.expression = block(n)
     else
       m.expression = expression(n)
     end
@@ -292,7 +319,6 @@ class Builder
     when :COMPOUND_ASSIGNMENT_EXPR then compoundAssignmentExpr(node)
     when :BINARY_EXPR       then binaryExpr(node)
     when :UNARY_EXPR        then unaryExpr(node)
-    #when :BLOCK_EXPR        then blockExpr(node)
     when :FUNCTION_CALL     then functionCall(node)
     when :NAME              then name(node)
     when :NULL_LITERAL      then nullLiteral(node)
@@ -354,32 +380,6 @@ class Builder
     m.op = node.text
     m.expression = expression(node.child)
     m
-  end
-
-  def blockExpr (node)
-    @logger.debug("blockExpr")
-    m = Model::BlockExpr.new
-    m.elements = []
-    node.children.each do |n|
-      m.elements << blockElement(n)
-    end
-    m
-  end
-
-  def blockElement (node)
-    @logger.debug("blockElement")
-    case node.kind
-    when :VALUE_DECL    then valueDecl(node)
-    when :VARIABLE_DECL then variableDecl(node)
-    when :BREAK_STMT    then breakStmt(node)
-    when :CONTINUE_STMT then continueStmt(node)
-    when :EMPTY_STMT    then emptyStmt(node)
-    when :IF_STMT       then ifStmt(node)
-    when :RETURN_STMT   then returnStmt(node)
-    when :WHILE_STMT    then whileStmt(node)
-    else
-      expressionStmt(node)
-    end
   end
 
   def functionCall (node)

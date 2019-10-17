@@ -192,12 +192,12 @@ class Parser
     n.addChild(type)
     option('=')
     if nextToken.kind == '{'
-      # Shortcut to block expression
-      # If we don't have this, then the blockExpr would still get processed, but
+      # Shortcut to block
+      # If we don't have this, then the block would still get processed, but
       # it would need to be followed by a semicolon. Automatic semicolon
       # insertion would have to be implemented in order to avoid that. For now,
-      # the easiest solution is just to detect a blockExpr and shortcut to it.
-      n.addChild(blockExpr)
+      # the easiest solution is just to detect a block and shortcut to it.
+      n.addChild(block)
     else
       n.addChild(expression)
       match(';')
@@ -310,6 +310,31 @@ class Parser
     n
   end
 
+  # BLOCK
+
+  def block ()
+    @logger.debug("block")
+    n = Node.new(:BLOCK)
+    match('{')
+    while nextToken.kind != '}'
+      n.addChild(blockElement)
+    end
+    match('}')
+    n
+  end
+
+  def blockElement ()
+    @logger.debug("blockElement")
+    # Not sure class declarations should be valid inside blocks --
+    # maybe only inside class bodies
+    case nextToken.kind
+    when 'val', 'var', 'def', 'class'
+      declaration
+    else
+      statement
+    end
+  end
+
   # STATEMENTS
 
   def statement ()
@@ -364,7 +389,11 @@ class Parser
     match('(')
     n.addChild(expression)
     match(')')
-    n.addChild(expression)
+    if nextToken.kind == '{'
+      n.addChild(block)
+    else
+      n.addChild(expression)
+    end
     n
   end
 
@@ -394,7 +423,11 @@ class Parser
     match('(')
     n.addChild(expression)
     match(')')
-    n.addChild(expression)
+    if nextToken.kind == '{'
+      n.addChild(block)
+    else
+      n.addChild(expression)
+    end
     n
   end
 
@@ -704,7 +737,6 @@ class Parser
       when :ID then nameExpr
       when 'this' then thisExpr
       when 'lambda' then lambdaExpr
-      when '{' then blockExpr
       when '(' then parenthesizedExpr
       else literal
     end
@@ -722,7 +754,7 @@ class Parser
     # If expressions are equivalent to the following function
     # if (cond_expr, true_expr, false_expr)
     # Functions can only take expressions as arguments, so a declaration or
-    # statement must be wrapped into a block expression in order to be passed
+    # statement must be wrapped into a block in order to be passed
     # in as arguments.
     # This is the form of the if expression:
     # if (expr) expr [else expr] ;
@@ -731,12 +763,12 @@ class Parser
     case nextToken.kind
     when 'val', 'var', 'def', 'class'
       # Manually insert a block node
-      p = Node.new(:BLOCK_EXPR)
+      p = Node.new(:BLOCK)
       p.addChild(declaration)
       n.addChild(p)
     when 'break', 'continue', 'do', ';', 'for', 'print', 'return', 'while'
       # Manually insert a block node
-      p = Node.new(:BLOCK_EXPR)
+      p = Node.new(:BLOCK)
       p.addChild(statement)
       n.addChild(p)
     when 'if', :ID, :NULL, :BOOLEAN, :INTEGER, :FLOAT, :IMAGINARY, '(', '[', '{'
@@ -760,11 +792,11 @@ class Parser
     case nextToken.kind
     when 'val', 'var', 'def', 'class'
       # Manually insert a block node
-      n = Node.new(:BLOCK_EXPR)
+      n = Node.new(:BLOCK)
       n.addChild(declaration)
     when 'break', 'continue', 'do', ';', 'for', 'print', 'return', 'while'
       # Manually insert a block node
-      n = Node.new(:BLOCK_EXPR)
+      n = Node.new(:BLOCK)
       n.addChild(statement)
     when 'if', :ID, :NULL, :BOOLEAN, :INTEGER, :FLOAT, :IMAGINARY, '(', '[', '{'
       n = expression
@@ -881,29 +913,6 @@ class Parser
     n.setText(t.text)
     n
   end
-
-  def blockExpr ()
-    @logger.debug("blockExpr")
-    n = Node.new(:BLOCK_EXPR)
-    match('{')
-    while nextToken.kind != '}'
-      n.addChild(blockElement)
-    end
-    match('}')
-    n
-  end
-
-  def blockElement ()
-    @logger.debug("blockElement")
-    # Not sure class declarations should be valid inside blocks --
-    # maybe only inside class bodies
-    case nextToken.kind
-    when 'val', 'var', 'def', 'class'
-      declaration
-    else
-      statement
-    end
-  end
   
   def parenthesizedExpr ()
     @logger.debug("parenthesizedExpr")
@@ -947,7 +956,7 @@ class Parser
     match(')')
     match('=>')
     if nextToken.kind == '{'
-      n.addChild(blockExpr)
+      n.addChild(block)
     else
       n.addChild(expression)
     end
@@ -978,7 +987,7 @@ class Parser
     when :CHARACTER then characterLiteral
     when :STRING then stringLiteral
     when '[' then arrayLiteral
-    when '{' then hashLiteral
+    #when '{' then hashLiteral
     else
       raise "Parse error in literal()"
     end

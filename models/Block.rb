@@ -1,8 +1,8 @@
-class Model::BlockExpr
+class Model::Block
   attr_accessor :elements
 
   def initialize ()
-    @template = Template.make("templates/blockExpr.c.erb")
+    @template = Template.make("templates/block.c.erb")
     @indent = 1
   end
 
