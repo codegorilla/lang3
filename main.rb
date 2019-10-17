@@ -8,8 +8,7 @@ require_relative 'Generator'
 require 'pp'
 require 'logger'
 
-@filename = "input1.ch"
-#@filename = "hello.ch"
+@filename = ARGV[0]
 
 @logger = Logger.new(STDOUT)
 @logger.level = Logger::INFO
@@ -40,7 +39,7 @@ puts ""
 # Build AST
 @logger.info("Building abstract syntax tree...")
 parser = Parser.new(tokens)
-parser.setLogLevel(Logger::DEBUG)
+parser.setLogLevel(Logger::INFO)
 root = parser.start
 puts parser.problems.errors
 puts parser.problems.warnings
@@ -48,7 +47,7 @@ puts parser.problems.warnings
 # Build output model
 @logger.info("Building output model...")
 tx = Builder.new(root)
-tx.setLogLevel(Logger::DEBUG)
+tx.setLogLevel(Logger::INFO)
 tx.start
 
 

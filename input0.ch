@@ -2,8 +2,8 @@ var x: int = (1 + 2) / 4;
 
 def main (): int = {
 
-  var b0: bool = true | false;
-  var b1: bool = true & false;
+  var b0: bool = false;
+  var b1: bool = true;
 
   var a: char    = 1;
   var b: short   = 2;
