@@ -17,14 +17,6 @@ class Template
     self
   end
 
-  # def indent ()
-  #   s = ""
-  #   @indent.times do
-  #     s += "  "
-  #   end
-  #   s
-  # end
-
   def render (bindg=nil)
     if bindg != nil
       @erb.result(bindg)

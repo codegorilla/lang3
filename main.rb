@@ -3,7 +3,6 @@ require_relative 'TokenStream'
 require_relative 'Lexer'
 require_relative 'Parser'
 require_relative 'Builder'
-require_relative 'Generator'
 
 require 'pp'
 require 'logger'
@@ -46,13 +45,8 @@ puts parser.problems.warnings
 
 # Build output model
 @logger.info("Building output model...")
-tx = Builder.new(root)
-tx.setLogLevel(Logger::INFO)
-tx.start
-
-
-# Build output source file
-#gen = Generator.new(root)
-#gen.setLogLevel(Logger::DEBUG)
-#chain = gen.start
+builder = Builder.new(root)
+builder.setLogLevel(Logger::INFO)
+model = builder.start
+puts model.render
 

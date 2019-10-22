@@ -1,11 +1,11 @@
 class Model::FunctionDecl
-  attr_accessor :name, :parameters, :type, :expression
+  attr_accessor :name, :parameters, :type, :block
 
   def initialize ()
-    @template = Template.make("templates/functionDecl.c.erb")
   end
 
   def render ()
+    @template = Template.make("templates/functionDecl.c.erb")
     @template.render(binding)
   end
 

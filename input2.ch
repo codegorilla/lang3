@@ -1,47 +1,22 @@
 var x: int = (1 + 2) / 4;
 
-def prime (x: int): float = {
-  
+def main (): int = {
+
+  var b0: bool = true | false;
+  var b1: bool = true & false;
+
+  var a: char    = 1;
+  var b: short   = 2;
+  var c: int     = 4;
+  var d: long    = 8;
+
+  var u0: uint   = 4;
+  var u1: uint8  = 8;
+  var u2: uint16 = 16;
+  var u3: uint32 = 32;
+  var u4: uint64 = 64;
+
+  var f1: float  = 3.14;
+  var d1: double = 6.28;
+
 }
-
-struct Waypoint {
-  var x: int = 5;
-  val y: int = 10;
-
-  def myfun (): int = {
-    x = 1;
-  }
-}
-
-def main (argc: int, argv: string): int = {
-  var b: int = 4 * -1;
-  var c: int = 1 || 2;
-  var d: char = 'A';
-  var e: string = "Hello world!";
-  var f: string = s;
-  var g: int = null;
-
-  val pi: float = 3.14;
-
-  c += 1;
-
-  var n: int* = null;
-  printf("Hello world!\n");
-  
-  ;
-
-  while (a == 1) {
-    x = 1;
-  }
-
-  if (b == true) {
-    y = 4;
-  }
-
-  t = s = r;
-
-  break;
-  continue;
-  return t;
-}
-

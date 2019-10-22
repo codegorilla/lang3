@@ -1,5 +1,7 @@
 require_relative 'models/Model'
 
+require_relative 'models/SourceFile'
+
 require_relative 'models/ValueDecl'
 require_relative 'models/VariableDecl'
 require_relative 'models/Initializer'
@@ -86,29 +88,26 @@ class Builder
   def start ()
     @logger.debug("start")
     node = @root
-    @scope = node.getAttribute("scope")      
+    @scope = node.getAttribute("scope")
 
     case node.kind
     when :PROGRAM
+      m = Model::SourceFile.new
+      m.elements = []
+      node.children.each { |n| m.elements << element(n) }
+      m
+    else
+      nil
+    end
+  end
 
-      node.children.each do |n|
-        case n.kind
-        when :VALUE_DECL
-          m = valueDecl(n)
-          puts m.render
-        when :VARIABLE_DECL
-          m = variableDecl(n)
-          puts m.render
-        when :FUNCTION_DECL
-          m = functionDecl(n)
-          puts m.render
-        when :STRUCT_DECL
-          m = structDecl(n)
-          # Put this in a new file?
-          puts m.render
-        end
-      end
-
+  def element (node)
+    @logger.debug("element")
+    case node.kind
+    when :VALUE_DECL    then valueDecl(node)
+    when :VARIABLE_DECL then variableDecl(node)
+    when :FUNCTION_DECL then functionDecl(node)
+    when :STRUCT_DECL   then structDecl(node)
     end
   end
 
@@ -145,7 +144,7 @@ class Builder
     m.name = name(node.child(0))
     m.parameters = parameters(node.child(1))
     m.type = type(node.child(2))
-    m.expression = block(node.child(3))
+    m.block = block(node.child(3))
     # FIX: needs to be a choice between block or expression
     m
   end

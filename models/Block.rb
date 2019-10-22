@@ -2,8 +2,7 @@ class Model::Block
   attr_accessor :elements
 
   def initialize ()
-    @template = Template.make("templates/block.c.erb")
-    @indent = 1
+    @indent = 0
   end
 
   def indent ()
@@ -15,6 +14,7 @@ class Model::Block
   end
 
   def render ()
+    @template = Template.make("templates/block.c.erb")
     @template.render(binding)
   end
 

@@ -1,14 +1,14 @@
-var x: int = (1 + 2) / 4;
+// Test declarations
 
 def main (): int = {
 
-  var b0: bool = true | false;
-  var b1: bool = true & false;
+  var b0: bool = false;
+  var b1: bool = true;
 
-  var a: char    = 1;
-  var b: short   = 2;
-  var c: int     = 4;
-  var d: long    = 8;
+  var a: char  = 1;
+  var b: short = 2;
+  var c: int   = 4;
+  var d: long  = 8;
 
   var u0: uint   = 4;
   var u1: uint8  = 8;
@@ -18,5 +18,4 @@ def main (): int = {
 
   var f1: float  = 3.14;
   var d1: double = 6.28;
-
 }
