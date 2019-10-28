@@ -1,12 +1,16 @@
 require_relative 'models/Model'
 
+require_relative 'models/headerFile'
 require_relative 'models/SourceFile'
 
 require_relative 'models/ValueDecl'
+require_relative 'models/ValueDef'
 require_relative 'models/VariableDecl'
+require_relative 'models/VariableDef'
 require_relative 'models/Initializer'
 
 require_relative 'models/FunctionDecl'
+require_relative 'models/FunctionDef'
 require_relative 'models/Parameters'
 require_relative 'models/Parameter'
 
@@ -53,9 +57,14 @@ require_relative 'models/Name'
 require_relative 'Template'
 
 class Builder
+  attr_reader :hf, :sf
 
   def initialize (root)
     @root = root
+
+    # Track header and souce files
+    @hf = Model::HeaderFile.new("checker")
+    @sf = Model::SourceFile.new("checker")
 
     @logger = Logger.new(STDOUT)
     @logger.level = Logger::INFO
@@ -90,12 +99,25 @@ class Builder
     node = @root
     @scope = node.getAttribute("scope")
 
+    # We aren't going to return a root model here
+    # Instead, the roots are simply attributes of the
+    # builder that can be accessed through methods
+
     case node.kind
     when :PROGRAM
-      m = Model::SourceFile.new
-      m.elements = []
-      node.children.each { |n| m.elements << element(n) }
-      m
+      @sf.elements = []
+      @hf.elements = []
+      node.children.each do |n|
+        k = element(n)
+        if k.class == Array
+          puts "HERE"
+          @hf.elements << k[0]
+          @sf.elements << k[1]
+        else
+          @sf.elements << k
+        end
+      end
+      true
     else
       nil
     end
@@ -104,14 +126,41 @@ class Builder
   def element (node)
     @logger.debug("element")
     case node.kind
-    when :VALUE_DECL    then valueDecl(node)
-    when :VARIABLE_DECL then variableDecl(node)
+    when :VALUE_DECL    then globalValueDecl(node)
+    when :VARIABLE_DECL then globalVariableDecl(node)
     when :FUNCTION_DECL then functionDecl(node)
     when :STRUCT_DECL   then structDecl(node)
     end
   end
 
   # DECLARATIONS
+
+  def globalValueDecl (node)
+    @logger.debug("globalValueDecl")
+    m = Model::ValueDef.new
+    m.name = name(node.child(0))
+    m.type = type(node.child(1))
+    m.initializer = initializer(node.child(2))
+
+    hm = Model::ValueDecl.new
+    hm.name = m.name
+    hm.type = m.type
+    [hm, m]
+  end
+
+  def globalVariableDecl (node)
+    @logger.debug("globalVariableDecl")
+    m = Model::VariableDef.new
+    m.name = name(node.child(0))
+    m.type = type(node.child(1))
+    m.initializer = initializer(node.child(2))
+
+    # Declaration
+    hm = Model::VariableDecl.new
+    hm.name = m.name
+    hm.type = m.type
+    [hm, m]
+  end
 
   def valueDecl (node)
     @logger.debug("valueDecl")
@@ -124,7 +173,7 @@ class Builder
 
   def variableDecl (node)
     @logger.debug("variableDecl")
-    m = Model::VariableDecl.new
+    m = Model::VariableDef.new
     m.name = name(node.child(0))
     m.type = type(node.child(1))
     m.initializer = initializer(node.child(2))
@@ -140,13 +189,20 @@ class Builder
 
   def functionDecl (node)
     @logger.debug("functionDecl")
-    m = Model::FunctionDecl.new
+    m = Model::FunctionDef.new
     m.name = name(node.child(0))
     m.parameters = parameters(node.child(1))
     m.type = type(node.child(2))
     m.block = block(node.child(3))
     # FIX: needs to be a choice between block or expression
-    m
+
+    # Now put together header file
+    hm = Model::FunctionDecl.new
+    hm.name = m.name
+    hm.parameters = m.parameters
+    hm.type = m.type
+
+    [hm, m]
   end
 
   def parameters (node)

@@ -1,8 +1,8 @@
 class Model::VariableDecl
-  attr_accessor :name, :type, :initializer
+  attr_accessor :name, :type
 
   def initialize ()
-    @template = Template.make("templates/variableDecl.c.erb")
+    @template = Template.make("templates/variableDecl.h.erb")
   end
 
   def render ()

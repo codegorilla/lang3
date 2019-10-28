@@ -44,9 +44,19 @@ puts parser.problems.errors
 puts parser.problems.warnings
 
 # Build output model
+# @logger.info("Building output header model...")
+# hb = HeaderBuilder.new(root)
+# hb.setLogLevel(Logger::INFO)
+# model = hb.start
+# puts model.render
+
 @logger.info("Building output model...")
 builder = Builder.new(root)
 builder.setLogLevel(Logger::INFO)
 model = builder.start
-puts model.render
+
+puts builder.hf.render
+puts builder.sf.render
+
+#puts model.render
 

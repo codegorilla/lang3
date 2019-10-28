@@ -1,5 +1,8 @@
 // Test declarations
 
+var x: int = 1;
+
+
 def main (): int = {
 
   var b0: bool = false;

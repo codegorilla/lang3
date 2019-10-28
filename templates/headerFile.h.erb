@@ -1,10 +1,15 @@
+#ifndef <%= @name.upcase %>_H<%= "\n" %>
+#define <%= @name.upcase %>_H<%= "\n" %>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "<%= @name %>.h"
-
 <% @elements.each do |element| %>
 <%= element.render %><%= "\n\n" %>
 <% end %>
+
+
+#endif
+

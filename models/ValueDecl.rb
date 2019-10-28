@@ -1,11 +1,11 @@
 class Model::ValueDecl
-  attr_accessor :name, :type, :initializer
+  attr_accessor :name, :type
 
   def initialize ()
   end
 
   def render ()
-    @template = Template.make("templates/valueDecl.c.erb")
+    @template = Template.make("templates/valueDecl.h.erb")
     @template.render(binding)
   end
 
