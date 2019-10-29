@@ -108,14 +108,7 @@ class Builder
       @sf.elements = []
       @hf.elements = []
       node.children.each do |n|
-        k = element(n)
-        if k.class == Array
-          puts "HERE"
-          @hf.elements << k[0]
-          @sf.elements << k[1]
-        else
-          @sf.elements << k
-        end
+        ma = element(n)
       end
       true
     else
@@ -137,29 +130,28 @@ class Builder
 
   def globalValueDecl (node)
     @logger.debug("globalValueDecl")
-    m = Model::ValueDef.new
-    m.name = name(node.child(0))
-    m.type = type(node.child(1))
-    m.initializer = initializer(node.child(2))
-
     hm = Model::ValueDecl.new
-    hm.name = m.name
-    hm.type = m.type
-    [hm, m]
+    hm.name = name(node.child(0))
+    hm.type = type(node.child(1))
+    @hf.elements << hm
+    sm = Model::ValueDef.new
+    sm.name = hm.name
+    sm.type = hm.type
+    sm.initializer = initializer(node.child(2))
+    @sf.elements << sm
   end
 
   def globalVariableDecl (node)
     @logger.debug("globalVariableDecl")
-    m = Model::VariableDef.new
-    m.name = name(node.child(0))
-    m.type = type(node.child(1))
-    m.initializer = initializer(node.child(2))
-
-    # Declaration
     hm = Model::VariableDecl.new
-    hm.name = m.name
-    hm.type = m.type
-    [hm, m]
+    hm.name = name(node.child(0))
+    hm.type = type(node.child(1))
+    @hf.elements << hm
+    sm = Model::VariableDef.new
+    sm.name = hm.name
+    sm.type = hm.type
+    sm.initializer = initializer(node.child(2))
+    @sf.elements << sm
   end
 
   def valueDecl (node)
@@ -189,20 +181,19 @@ class Builder
 
   def functionDecl (node)
     @logger.debug("functionDecl")
-    m = Model::FunctionDef.new
-    m.name = name(node.child(0))
-    m.parameters = parameters(node.child(1))
-    m.type = type(node.child(2))
-    m.block = block(node.child(3))
-    # FIX: needs to be a choice between block or expression
-
-    # Now put together header file
     hm = Model::FunctionDecl.new
-    hm.name = m.name
-    hm.parameters = m.parameters
-    hm.type = m.type
-
-    [hm, m]
+    hm.name = name(node.child(0))
+    hm.parameters = parameters(node.child(1))
+    hm.type = type(node.child(2))
+    @hf.elements << hm
+    sm = Model::FunctionDef.new
+    sm.name = hm.name
+    sm.parameters = hm.parameters
+    sm.type = hm.type
+    # FIX: needs to be a choice between block or expression
+    sm.block = block(node.child(3))
+    @sf.elements << sm
+    1 # THIS IS A PROBLEM
   end
 
   def parameters (node)
@@ -225,10 +216,14 @@ class Builder
 
   def structDecl (node)
     @logger.debug("structDecl")
-    m = Model::StructDecl.new
-    m.name = node.child(0).text
-    m.body = structBody(node.child(1))
-    m
+    hm = Model::StructDecl.new
+    hm.name = node.child(0).text
+    hm.body = structBody(node.child(1))
+    @hf.elements << hm
+
+    # Header file needs to contain method declarations
+    # Source file needs to contain method definitions
+    #@sf.elements << m
   end
 
   def structBody (node)
@@ -242,7 +237,7 @@ class Builder
       when :VARIABLE_DECL
         m.fieldElements << fieldElement(n)
       when :FUNCTION_DECL
-        m.methodElements << methodElement(n)
+        methodElement(n)
       end
     end
     @level -= 1;
@@ -254,7 +249,6 @@ class Builder
     case node.kind
     when :VALUE_DECL    then valueDecl(node)
     when :VARIABLE_DECL then variableDecl(node)
-    when :FUNCTION_DECL then functionDecl(node)
     end
   end
 
@@ -262,7 +256,6 @@ class Builder
     @logger.debug("methodElement")
     functionDecl(node)
   end
-
 
   # TYPES
 

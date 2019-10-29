@@ -2,6 +2,19 @@
 
 var x: int = 1;
 
+val y: float = 3.14;
+
+struct Test {
+  var t: float = 1.2;
+
+  def init (): Test = {
+    t = 3.14;
+  }
+
+  def myfun (x: int, y: int): int = {}
+}
+
+
 
 def main (): int = {
 
